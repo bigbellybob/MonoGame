@@ -71,7 +71,7 @@ using System;
 using MonoTouch.UIKit;
 
 namespace Microsoft.Xna.Framework {
-	class iOSGameWindow : GameWindow {
+	class iOSGameWindow : GameWindow, IiOSGameWindow {
 		private readonly iOSGameViewController _viewController;
 
 		public iOSGameWindow (iOSGameViewController viewController)
@@ -142,6 +142,18 @@ namespace Microsoft.Xna.Framework {
 		{
 			_viewController.Title = title;
 		}
+
+        /// <summary>
+        /// Gets the user interface view for iOS. HACK!!!
+        /// </summary>
+        /// <returns>
+        /// The user interface view.
+        /// </returns>
+        public UIView GetUIView()
+        {
+            return _viewController.View;
+        }
+
 
 		#endregion GameWindow Members
 	}
