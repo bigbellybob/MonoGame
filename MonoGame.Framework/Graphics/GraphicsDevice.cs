@@ -160,7 +160,9 @@ namespace Microsoft.Xna.Framework.Graphics
 		internal static int attributeNormal = 4;
 		internal static int attributeBlendIndicies = 5;
 		internal static int attributeBlendWeight = 6;
-		internal static int attributeTexCoord = 7; //must be the last one, texture index locations are added to it
+        internal static int attributeBinormal = 7;
+        internal static int attributeTangent = 8;
+        internal static int attributeTexCoord = 9; //must be the last one, texture index locations are added to it
 
         private uint VboIdArray;
         private uint VboIdElement;

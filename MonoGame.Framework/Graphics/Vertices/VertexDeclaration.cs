@@ -149,6 +149,8 @@ namespace Microsoft.Xna.Framework.Graphics
 				case VertexElementUsage.BlendIndices: attributeLocation = GraphicsDevice.attributeBlendIndicies; break;
 				case VertexElementUsage.BlendWeight: attributeLocation = GraphicsDevice.attributeBlendWeight; break;
 				case VertexElementUsage.TextureCoordinate: attributeLocation = GraphicsDevice.attributeTexCoord + ve.UsageIndex; break;
+                case VertexElementUsage.Tangent: attributeLocation = GraphicsDevice.attributeTangent; break;
+                case VertexElementUsage.Binormal: attributeLocation = GraphicsDevice.attributeBinormal; break;
 				default:
 					throw new NotImplementedException();
 				}

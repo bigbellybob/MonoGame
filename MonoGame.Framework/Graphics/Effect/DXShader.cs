@@ -226,6 +226,12 @@ namespace Microsoft.Xna.Framework.Graphics
                     case VertexElementUsage.BlendWeight:
 					    GL.BindAttribLocation(program, GraphicsDevice.attributeBlendWeight, attrb.name);
 					    break;
+                    case VertexElementUsage.Binormal:
+                        GL.BindAttribLocation(program, GraphicsDevice.attributeBinormal, attrb.name);
+                        break;
+                    case VertexElementUsage.Tangent:
+                        GL.BindAttribLocation(program, GraphicsDevice.attributeTangent, attrb.name);
+                        break;
 				    default:
 					    throw new NotImplementedException();
 				}
