@@ -1826,36 +1826,46 @@ namespace Microsoft.Xna.Framework.Graphics
 
         public byte[] GetData ()
         {
-            var renderTarget = _currentRenderTargetBindings[0].RenderTarget as RenderTarget2D;
+            SurfaceFormat format;
+            int width = Viewport.Width;
+            int height = Viewport.Height;
+
+            if (_currentRenderTargetBindings == null || _currentRenderTargetBindings.Length == 0) {
+                format = SurfaceFormat.Color;
+            } else {
+                format = _currentRenderTargetBindings[0].RenderTarget.Format;
+            }
+
+//            var renderTarget = _currentRenderTargetBindings[0].RenderTarget as RenderTarget2D;
 
             byte[] imageInfo;
             int sz = 0;
 
-            switch (renderTarget.Format)
+            switch (format)
             {
                 case SurfaceFormat.Color: //kTexture2DPixelFormat_RGBA8888
                 case SurfaceFormat.Dxt3:
 
                     sz = 4;
-                    imageInfo = new byte[(renderTarget.Width * renderTarget.Height) * sz];
+                    imageInfo = new byte[(width * height) * sz];
                     break;
                 case SurfaceFormat.Bgra4444: //kTexture2DPixelFormat_RGBA4444
                     sz = 2;
-                    imageInfo = new byte[(renderTarget.Width * renderTarget.Height) * sz];
+                    imageInfo = new byte[(width * height) * sz];
 
                     break;
                 case SurfaceFormat.Bgra5551: //kTexture2DPixelFormat_RGB5A1
                     sz = 2;
-                    imageInfo = new byte[(renderTarget.Width * renderTarget.Height) * sz];
+                    imageInfo = new byte[(width * height) * sz];
                     break;
                 case SurfaceFormat.Alpha8:  // kTexture2DPixelFormat_A8 
                     sz = 1;
-                    imageInfo = new byte[(renderTarget.Width * renderTarget.Height) * sz];
+                    imageInfo = new byte[(width * height) * sz];
                     break;
                 default:
                     throw new NotSupportedException("Texture format");
             }
-            GL.ReadPixels(0,0, renderTarget.Width, renderTarget.Height, All.Rgba, All.UnsignedByte, imageInfo);
+            GL.ReadPixels(0,0, width, height, All.Rgba, All.UnsignedByte, imageInfo);
 
             return imageInfo;
         }
