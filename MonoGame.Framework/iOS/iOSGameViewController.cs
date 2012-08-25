@@ -81,6 +81,8 @@ namespace Microsoft.Xna.Framework {
 				throw new ArgumentNullException ("platform");
 			_platform = platform;
 			SupportedOrientations = DisplayOrientation.Default;
+
+            WantsFullScreenLayout = true;
 		}
 
 		public event EventHandler<EventArgs> InterfaceOrientationChanged;
