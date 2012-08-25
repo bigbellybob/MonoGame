@@ -276,7 +276,10 @@ namespace Microsoft.Xna.Framework
             _graphicsDevice.PresentationParameters.IsFullScreen = false;
 #else
             // Set "full screen"  as default
-            _graphicsDevice.PresentationParameters.IsFullScreen = true;
+            //_graphicsDevice.PresentationParameters.IsFullScreen = true;
+
+            // NO WE WONT!
+            IsFullScreen = _wantFullScreen;
 #endif // MONOMAC
 
 #if !PSS
