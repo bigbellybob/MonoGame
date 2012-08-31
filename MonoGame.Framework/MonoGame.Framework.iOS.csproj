@@ -90,9 +90,6 @@
     <Reference Include="System.Core" />
     <Reference Include="monotouch" />
     <Reference Include="OpenTK" />
-    <Reference Include="Lidgren.Network.iOS">
-      <HintPath>..\..\MonoGame.Build\Lidgren.Network.iOS.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -478,5 +475,11 @@
     <EmbeddedResource Include="Graphics\Effect\Resources\EnvironmentMapEffect.ogl.mgfxo" />
     <EmbeddedResource Include="Graphics\Effect\Resources\SkinnedEffect.ogl.mgfxo" />
     <EmbeddedResource Include="Graphics\Effect\Resources\SpriteEffect.ogl.mgfxo" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ThirdParty\Lidgren.Network\Lidgren.Network.iOS.csproj">
+      <Project>{734EAA48-F1CA-481A-B391-0285BC0E8B40}</Project>
+      <Name>Lidgren.Network.iOS</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>
