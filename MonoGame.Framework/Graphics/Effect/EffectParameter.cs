@@ -64,7 +64,7 @@ namespace Microsoft.Xna.Framework.Graphics
             StateKey = unchecked(NextStateKey++);
         }
 
-		public string Name { get; private set; }
+		public string Name { get; set; }
 
         public string Semantic { get; private set; }
 

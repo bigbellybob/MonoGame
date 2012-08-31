@@ -280,9 +280,11 @@ namespace Microsoft.Xna.Framework.Graphics
 						tex = (Texture)textures [sampler.index];
 					}
 
-					GL.ActiveTexture( (TextureUnit)((int)TextureUnit.Texture0 + sampler.index) );
-					tex.Activate();						
-					samplerStates[sampler.index].Activate(tex.glTarget, tex.LevelCount > 1);
+                    if(tex != null) {
+                        GL.ActiveTexture( (TextureUnit)((int)TextureUnit.Texture0 + sampler.index) );
+    					tex.Activate();						
+    					samplerStates[sampler.index].Activate(tex.glTarget, tex.LevelCount > 1);
+                    }
 				}
 			}
 
