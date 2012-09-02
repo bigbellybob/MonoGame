@@ -36,6 +36,7 @@ namespace MonoGameContentProcessors.Processors
             if (platform != MonoGamePlatform.iOS)
                 return base.Process(input, context);
 
+
             // Only go this path if we are compressing the texture
             if (TextureFormat != TextureProcessorOutputFormat.DxtCompressed)
                 return base.Process(input, context);
@@ -123,41 +124,44 @@ namespace MonoGameContentProcessors.Processors
 
         public static void ConvertToPVRTC(TextureContent sourceContent, int mipLevels, bool premultipliedAlpha, MGCompressionMode bpp)
         {
-            IntPtr dataSizesPtr = IntPtr.Zero;
-
-            var texDataPtr = CompressTexture(sourceContent.Faces[0][0].GetPixelData(), 
-                                            sourceContent.Faces[0][0].Height, 
-                                            sourceContent.Faces[0][0].Width, 
-                                            mipLevels, 
-                                            premultipliedAlpha,
-                                            bpp == MGCompressionMode.PVRTCFourBitsPerPixel,
-                                            ref dataSizesPtr);
-
-            // Store the size of each mipLevel
-            var dataSizesArray = new int[mipLevels];
-            Marshal.Copy(dataSizesPtr, dataSizesArray, 0, dataSizesArray.Length);
-
-            var levelSize = 0;
-            byte[] levelData;
-            var sourceWidth = sourceContent.Faces[0][0].Width;
-            var sourceHeight = sourceContent.Faces[0][0].Height;
-
-            // Set the pixel data for each mip level.
-            sourceContent.Faces[0].Clear();
-
-            for (int x = 0; x < mipLevels; x++)
+            foreach (MipmapChain face in sourceContent.Faces)
             {
-                levelSize = dataSizesArray[x];
-                levelData = new byte[levelSize];
+                IntPtr dataSizesPtr = IntPtr.Zero;
 
-                Marshal.Copy(texDataPtr, levelData, 0, levelSize);
+                var texDataPtr = CompressTexture(face[0].GetPixelData(),
+                                                face[0].Height,
+                                                face[0].Width,
+                                                mipLevels,
+                                                premultipliedAlpha,
+                                                bpp == MGCompressionMode.PVRTCFourBitsPerPixel,
+                                                ref dataSizesPtr);
 
-                var levelWidth = Math.Max(sourceWidth  >> x, 1);
-                var levelHeight = Math.Max(sourceHeight >> x, 1);
+                // Store the size of each mipLevel
+                var dataSizesArray = new int[mipLevels];
+                Marshal.Copy(dataSizesPtr, dataSizesArray, 0, dataSizesArray.Length);
 
-                sourceContent.Faces[0].Add(new MGBitmapContent(levelData, levelWidth, levelHeight, bpp));
+                var levelSize = 0;
+                byte[] levelData;
+                var sourceWidth = face[0].Width;
+                var sourceHeight = face[0].Height;
 
-                texDataPtr = IntPtr.Add(texDataPtr, levelSize);
+                // Set the pixel data for each mip level.
+                face.Clear();
+
+                for (int x = 0; x < mipLevels; x++)
+                {
+                    levelSize = dataSizesArray[x];
+                    levelData = new byte[levelSize];
+
+                    Marshal.Copy(texDataPtr, levelData, 0, levelSize);
+
+                    var levelWidth = Math.Max(sourceWidth >> x, 1);
+                    var levelHeight = Math.Max(sourceHeight >> x, 1);
+
+                    face.Add(new MGBitmapContent(levelData, levelWidth, levelHeight, bpp));
+
+                    texDataPtr = IntPtr.Add(texDataPtr, levelSize);
+                }
             }
         }
 
