@@ -718,6 +718,17 @@ namespace Microsoft.Xna.Framework.Graphics
         {
 #if WINRT
             SaveAsImage(BitmapEncoder.JpegEncoderId, stream, width, height);
+#elif IPHONE
+            int mByteWidth = width * 4;         // Assume 4 bytes/pixel for now
+            mByteWidth = (mByteWidth + 3) & ~3;    // Align to 4 bytes
+
+            CGImage cgImage = CreateRGBImageFromBufferData (mByteWidth, width, height);
+                
+            using (UIImage uiImage = UIImage.FromImage(cgImage))
+            {
+                NSData data = uiImage.AsJPEG();
+                WriteNSDataToStream(data, stream);
+            }
 #else
             throw new NotImplementedException();
 #endif
@@ -727,6 +738,17 @@ namespace Microsoft.Xna.Framework.Graphics
         {
 #if WINRT
             SaveAsImage(BitmapEncoder.PngEncoderId, stream, width, height);
+#elif IPHONE
+            int mByteWidth = width * 4;         // Assume 4 bytes/pixel for now
+            mByteWidth = (mByteWidth + 3) & ~3;    // Align to 4 bytes
+
+            CGImage cgImage = CreateRGBImageFromBufferData (mByteWidth, width, height);
+                
+            using (UIImage uiImage = UIImage.FromImage(cgImage))
+            {
+                NSData data = uiImage.AsPNG();
+                WriteNSDataToStream(data, stream);
+            }
 #else
             throw new NotImplementedException();
 #endif
@@ -759,6 +781,36 @@ namespace Microsoft.Xna.Framework.Graphics
         }
 #endif // WINRT
 
+#if IPHONE
+        private CGImage CreateRGBImageFromBufferData(int mByteWidth, int mWidth, int mHeight)
+        {
+            CGColorSpace cgColorSpace = CGColorSpace.CreateDeviceRGB();
+
+            CGImageAlphaInfo alphaInfo = (CGImageAlphaInfo)((int)CGImageAlphaInfo.PremultipliedLast | (int)CGBitmapFlags.ByteOrderDefault);
+
+            CGBitmapContext bitmap;
+            byte[] mData = GetTextureData(0);
+            
+            try 
+            {
+                unsafe 
+                {
+                    fixed (byte* ptr = mData) 
+                    {
+                        bitmap = new CGBitmapContext ((IntPtr)ptr, mWidth, mHeight, 8, mByteWidth, cgColorSpace, alphaInfo);
+                    }
+                }
+            } 
+            catch 
+            {
+            }
+
+            CGImage image = bitmap.ToImage ();
+
+            return image;
+        }
+#endif
+
         //What was this for again?
 		internal void Reload(Stream textureStream)
 		{
@@ -776,7 +828,7 @@ namespace Microsoft.Xna.Framework.Graphics
 #endif
 		}
 
-#if ANDROID
+#if IPHONE || ANDROID
 		private byte[] GetTextureData(int ThreadPriorityLevel)
 		{
 			int framebufferId = -1;
@@ -836,9 +888,39 @@ namespace Microsoft.Xna.Framework.Graphics
 			GL.DeleteRenderbuffers(1, ref renderBufferID);
 			GL.DeleteFramebuffers(1, ref framebufferId);
 			GL.BindFramebuffer(All.Framebuffer, 0);
+            GL.BindRenderbuffer(All.Renderbuffer, 0);
+
+            // binging the framebuffer to 0 fails on iPad:
+            // FramebufferNotSupported
+
+//            status = GL.CheckFramebufferStatus(All.Framebuffer);
+//
+//            Console.WriteLine("Framebuffer status: " + status);
+
 			return imageInfo;
 		}
 #endif
+
+#if IPHONE
+        private void WriteNSDataToStream(NSData data, Stream outStream)
+        {
+            // Ideally we would just call data.AsStream() to get the stream of graphics data, however that throws the exception...
+            // Wrapper for NSMutableData is not supported, call new UnmanagedMemoryStream ((Byte*) mutableData.Bytes, mutableData.Length) instead
+            unsafe 
+            {
+                using (UnmanagedMemoryStream imageStream = new UnmanagedMemoryStream((byte*)data.Bytes, data.Length))
+                {
+                    imageStream.CopyTo(outStream);
+                }
+            }
+        }
+#endif
+
+        public int TextureId {
+            get {
+                return this.glTexture;
+            }
+        }
 	}
 }
 

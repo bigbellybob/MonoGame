@@ -36,6 +36,9 @@ or conditions. You may have additional consumer rights under your local laws whi
 permitted under your local laws, the contributors exclude the implied warranties of merchantability, fitness for a particular
 purpose and non-infringement.
 */
+using System.IO;
+
+
 #endregion License
 
 using System;
@@ -74,6 +77,11 @@ using RenderbufferTarget = OpenTK.Graphics.ES20.All;
 using RenderbufferStorage = OpenTK.Graphics.ES20.All;
 #endif
 
+#if IPHONE
+using MonoTouch.CoreGraphics;
+using MonoTouch.Foundation;
+using MonoTouch.UIKit;
+#endif
 
 namespace Microsoft.Xna.Framework.Graphics
 {
@@ -160,7 +168,9 @@ namespace Microsoft.Xna.Framework.Graphics
 		internal static int attributeNormal = 4;
 		internal static int attributeBlendIndicies = 5;
 		internal static int attributeBlendWeight = 6;
-		internal static int attributeTexCoord = 7; //must be the last one, texture index locations are added to it
+        internal static int attributeBinormal = 7;
+        internal static int attributeTangent = 8;
+        internal static int attributeTexCoord = 9; //must be the last one, texture index locations are added to it
 
         private uint VboIdArray;
         private uint VboIdElement;
@@ -1811,6 +1821,114 @@ namespace Microsoft.Xna.Framework.Graphics
 
             throw new NotSupportedException();
         }
-		
+
+        // ADDED NEW METHODS
+
+        public byte[] GetData ()
+        {
+            SurfaceFormat format;
+            int width = Viewport.Width;
+            int height = Viewport.Height;
+
+            if (_currentRenderTargetBindings == null || _currentRenderTargetBindings.Length == 0) {
+                format = SurfaceFormat.Color;
+            } else {
+                format = _currentRenderTargetBindings[0].RenderTarget.Format;
+            }
+
+//            var renderTarget = _currentRenderTargetBindings[0].RenderTarget as RenderTarget2D;
+
+            byte[] imageInfo;
+            int sz = 0;
+
+            switch (format)
+            {
+                case SurfaceFormat.Color: //kTexture2DPixelFormat_RGBA8888
+                case SurfaceFormat.Dxt3:
+
+                    sz = 4;
+                    imageInfo = new byte[(width * height) * sz];
+                    break;
+                case SurfaceFormat.Bgra4444: //kTexture2DPixelFormat_RGBA4444
+                    sz = 2;
+                    imageInfo = new byte[(width * height) * sz];
+
+                    break;
+                case SurfaceFormat.Bgra5551: //kTexture2DPixelFormat_RGB5A1
+                    sz = 2;
+                    imageInfo = new byte[(width * height) * sz];
+                    break;
+                case SurfaceFormat.Alpha8:  // kTexture2DPixelFormat_A8 
+                    sz = 1;
+                    imageInfo = new byte[(width * height) * sz];
+                    break;
+                default:
+                    throw new NotSupportedException("Texture format");
+            }
+            GL.ReadPixels(0,0, width, height, All.Rgba, All.UnsignedByte, imageInfo);
+
+            return imageInfo;
+        }
+
+        public void SaveAsJpeg(Stream stream, int width, int height)
+        {
+#if IPHONE
+            int mByteWidth = width * 4;         // Assume 4 bytes/pixel for now
+            mByteWidth = (mByteWidth + 3) & ~3;    // Align to 4 bytes
+
+            CGImage cgImage = CreateRGBImageFromBufferData (mByteWidth, width, height);
+                
+            using (UIImage uiImage = UIImage.FromImage(cgImage))
+            {
+                NSData data = uiImage.AsJPEG();
+                WriteNSDataToStream(data, stream);
+            }
+#else
+            throw new NotImplementedException();
+#endif
+        }
+
+#if IPHONE
+        private CGImage CreateRGBImageFromBufferData(int mByteWidth, int mWidth, int mHeight)
+        {
+            CGColorSpace cgColorSpace = CGColorSpace.CreateDeviceRGB();
+
+            CGImageAlphaInfo alphaInfo = (CGImageAlphaInfo)((int)CGImageAlphaInfo.PremultipliedLast | (int)CGBitmapFlags.ByteOrderDefault);
+
+            CGBitmapContext bitmap;
+            byte[] mData = GetData();
+            
+            try 
+            {
+                unsafe 
+                {
+                    fixed (byte* ptr = mData) 
+                    {
+                        bitmap = new CGBitmapContext ((IntPtr)ptr, mWidth, mHeight, 8, mByteWidth, cgColorSpace, alphaInfo);
+                    }
+                }
+            } 
+            catch 
+            {
+            }
+
+            CGImage image = bitmap.ToImage ();
+
+            return image;
+        }
+        
+        private void WriteNSDataToStream(NSData data, Stream outStream)
+        {
+            // Ideally we would just call data.AsStream() to get the stream of graphics data, however that throws the exception...
+            // Wrapper for NSMutableData is not supported, call new UnmanagedMemoryStream ((Byte*) mutableData.Bytes, mutableData.Length) instead
+            unsafe 
+            {
+                using (UnmanagedMemoryStream imageStream = new UnmanagedMemoryStream((byte*)data.Bytes, data.Length))
+                {
+                    imageStream.CopyTo(outStream);
+                }
+            }
+        }
+#endif		
     }
 }

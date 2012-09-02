@@ -79,9 +79,34 @@ namespace Microsoft.Xna.Framework.Graphics
 			for (int i=0; i<6; i++) {
 				TextureTarget target = GetGLCubeFace((CubeMapFace)i);
 
-				if (glFormat == (PixelFormat)All.CompressedTextureFormats) {
-					throw new NotImplementedException();
-				} else {
+				if (glFormat == (PixelFormat)All.CompressedTextureFormats)
+                {
+                    var imageSize = 0;
+                    switch (format)
+                    {
+                        case SurfaceFormat.RgbPvrtc2Bpp:
+                        case SurfaceFormat.RgbaPvrtc2Bpp:
+                            imageSize = (Math.Max(size, 8) * Math.Max(size, 8) * 2 + 7) / 8;
+                            break;
+                        case SurfaceFormat.RgbPvrtc4Bpp:
+                        case SurfaceFormat.RgbaPvrtc4Bpp:
+                            imageSize = (Math.Max(size, 16) * Math.Max(size, 8) * 4 + 7) / 8;
+                            break;
+                        case SurfaceFormat.Dxt1:
+                            imageSize = ((size + 3) / 4) * ((size + 3) / 4) * 8 * 1;
+                            break;
+                        case SurfaceFormat.Dxt3:
+                        case SurfaceFormat.Dxt5:
+                            imageSize = ((size + 3) / 4) * ((size + 3) / 4) * 16 * 1;
+                            break;
+                        default:
+                            throw new NotImplementedException();
+                    }
+
+                    GL.CompressedTexImage2D(target, 0, glInternalFormat,
+                                            size, size, 0,
+                                            imageSize, IntPtr.Zero);
+                } else {
 #if IPHONE || ANDROID
 					GL.TexImage2D (target, 0, (int)glInternalFormat, size, size, 0, glFormat, glType, IntPtr.Zero);
 #else
@@ -137,6 +162,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
             var elementSizeInByte = Marshal.SizeOf(typeof(T));
 			var dataHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+            var startBytes = startIndex * elementSizeInByte;
 			var dataPtr = (IntPtr)(dataHandle.AddrOfPinnedObject().ToInt64() + startIndex * elementSizeInByte);
 			
 			var xOffset = 0;
@@ -160,11 +186,29 @@ namespace Microsoft.Xna.Framework.Graphics
 			GL.BindTexture (TextureTarget.TextureCubeMap, this.glTexture);
 			
 			TextureTarget target = GetGLCubeFace(face);
-			if (glFormat == (PixelFormat)All.CompressedTextureFormats) {
-				throw new NotImplementedException();
-			} else {
-				GL.TexSubImage2D(target, level, xOffset, yOffset, width, height, glFormat, glType, dataPtr);
-			}
+			if (glFormat == (PixelFormat)All.CompressedTextureFormats)
+            {
+                    GL.CompressedTexSubImage2D(target, 
+                                               level, xOffset, yOffset, width, height,
+#if GLES
+                                               glInternalFormat,
+#else
+                                               glFormat,
+#endif
+                                           data.Length - startBytes, dataPtr);
+            }
+            else
+            {
+                    GL.TexSubImage2D(target, 
+                                               level, xOffset, yOffset, width, height,
+#if GLES
+                                               glInternalFormat,
+#else
+                                               glFormat,
+#endif
+                                           glType, dataPtr);
+
+            }
 #endif			
 			dataHandle.Free ();
 		}
