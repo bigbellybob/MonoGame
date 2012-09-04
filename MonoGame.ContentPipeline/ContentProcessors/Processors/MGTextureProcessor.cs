@@ -9,12 +9,18 @@ using Microsoft.Xna.Framework.Content.Pipeline.Processors;
 using System.Runtime.InteropServices;
 using System.Collections.ObjectModel;
 using MonoGameContentProcessors.Content;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace MonoGameContentProcessors.Processors
 {
     [ContentProcessor(DisplayName = "MonoGame Texture")]
     public class MGTextureProcessor : TextureProcessor
     {
+        public const int MAX_TEXTURE_SIZE = 1024;       
+
         [DllImport("PVRTexLibC.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr CompressTexture(byte[] data, int height, int width, int mipLevels, bool preMultiplied, bool pvrtc4bppCompression, ref IntPtr dataSizes);
 
@@ -41,18 +47,70 @@ namespace MonoGameContentProcessors.Processors
             if (TextureFormat != TextureProcessorOutputFormat.DxtCompressed)
                 return base.Process(input, context);
 
-            // TODO: Reflector ResizeToPowerOfTwo(TextureContent tex)
-            // Resize the first face and let mips get generated from the dll.
-            /*if (ResizeToPowerOfTwo)
-            {
-
-            }*/
-
             var height = input.Faces[0][0].Height;
             var width = input.Faces[0][0].Width;
             var mipLevels = 1;
 
             var invalidBounds = height != width || !(isPowerOfTwo(height) && isPowerOfTwo(width));
+
+            // TODO: Reflector ResizeToPowerOfTwo(TextureContent tex)
+            // Resize the first face and let mips get generated from the dll.
+            if (invalidBounds)
+            {
+                byte[] originalBytes = input.Faces[0][0].GetPixelData();
+
+                //Here create the Bitmap to the know height, width and format
+                Bitmap bmp = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+
+                BitmapData bmpData = bmp.LockBits(
+                       new System.Drawing.Rectangle(0, 0, bmp.Width, bmp.Height),
+                       ImageLockMode.WriteOnly, bmp.PixelFormat);
+
+                //Copy the data from the byte array into BitmapData.Scan0
+                Marshal.Copy(originalBytes, 0, bmpData.Scan0, originalBytes.Length);
+
+                //Unlock the pixels
+                bmp.UnlockBits(bmpData);
+
+                int newSize = Math.Min(Pow2roundup(Math.Max(width, height)), MAX_TEXTURE_SIZE);
+
+                Bitmap newBitmap = new Bitmap(newSize, newSize, PixelFormat.Format32bppArgb);
+
+                using (Graphics gfx = Graphics.FromImage(newBitmap))
+                {
+                    gfx.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    gfx.DrawImage(bmp, new System.Drawing.Rectangle(0, 0, newSize, newSize),
+                        new System.Drawing.Rectangle(0, 0, bmp.Width, bmp.Height), GraphicsUnit.Pixel);
+                }
+
+                BitmapData newbmpData = newBitmap.LockBits(
+                       new System.Drawing.Rectangle(0, 0, newBitmap.Width, newBitmap.Height),
+                       ImageLockMode.ReadOnly, newBitmap.PixelFormat);
+
+                var length = newbmpData.Stride * newbmpData.Height;
+
+                byte[] newBytes = new byte[length];
+
+                //Copy the data from the byte array into BitmapData.Scan0
+                Marshal.Copy(newbmpData.Scan0, newBytes, 0, length);
+
+                //Unlock the pixels
+                newBitmap.UnlockBits(newbmpData);
+
+                PixelBitmapContent<Microsoft.Xna.Framework.Color> pbc = new PixelBitmapContent<Microsoft.Xna.Framework.Color>(newSize, newSize);
+
+                pbc.SetPixelData(newBytes);
+
+                input.Faces[0][0] = pbc;
+
+                context.Logger.LogWarning("", input.Identity, "Texture resized to: " + input.Faces[0][0].Width + "x" + input.Faces[0][0].Height, this);
+
+
+                // don't forget to reset width height vars
+                height = newSize;
+                width = newSize;
+                invalidBounds = false;
+            }
 
             // Only PVR compress square, power of two textures.
             if (invalidBounds || compressionMode == MGCompressionMode.NoCompression)
@@ -82,7 +140,7 @@ namespace MonoGameContentProcessors.Processors
 
             if (PremultiplyAlpha)
             {
-                var colorTex = input.Faces[0][0] as PixelBitmapContent<Color>;
+                var colorTex = input.Faces[0][0] as PixelBitmapContent<Microsoft.Xna.Framework.Color>;
                 if (colorTex != null)
                 {
                     for (int x = 0; x < colorTex.Height; x++)
@@ -91,7 +149,7 @@ namespace MonoGameContentProcessors.Processors
                         for (int y = 0; y < row.Length; y++)
                         {
                             if (row[y].A < 0xff)
-                                row[y] = Color.FromNonPremultiplied(row[y].R, row[y].G, row[y].B, row[y].A);
+                                row[y] = Microsoft.Xna.Framework.Color.FromNonPremultiplied(row[y].R, row[y].G, row[y].B, row[y].A);
                         }
                     }
                 }
@@ -168,6 +226,19 @@ namespace MonoGameContentProcessors.Processors
         private bool isPowerOfTwo(int x)
         {
             return (x != 0) && ((x & (x - 1)) == 0);
+        }
+
+        private int Pow2roundup (int x)
+        {
+            if (x < 0)
+                return 0;
+            --x;
+            x |= x >> 1;
+            x |= x >> 2;
+            x |= x >> 4;
+            x |= x >> 8;
+            x |= x >> 16;
+            return x+1;
         }
     }
 
