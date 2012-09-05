@@ -60,6 +60,9 @@
     <Reference Include="NAudio.WindowsMediaFormat">
       <HintPath>..\..\ThirdParty\Libs\NAudio\NAudio.WindowsMediaFormat.dll</HintPath>
     </Reference>
+    <Reference Include="PVRTexLibC">
+      <HintPath>..\..\Tools\PVRTexLibC\Release\PVRTexLibC.dll</HintPath>
+    </Reference>
     <Reference Include="SharpDX">
       <HintPath>..\..\ThirdParty\Libs\SharpDX\Windows\SharpDX.dll</HintPath>
     </Reference>
@@ -68,6 +71,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -134,6 +138,7 @@
     <Compile Include="Content\MGBitmapContent.cs" />
     <Compile Include="Processors\MGEffectProcessor.cs" />
     <Compile Include="Processors\MGMaterialProcessor.cs" />
+    <Compile Include="Processors\MGModelProcessor.cs" />
     <Compile Include="Processors\MGSongProcessor.cs" />
     <Compile Include="Processors\MGSoundEffectProcessor.cs" />
     <Compile Include="Processors\MGSpriteFontDescriptionProcessor.cs" />
@@ -146,18 +151,6 @@
       <Link>libmojoshader_32.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <ProjectReference Include="..\..\Tools\MP3Compression\yeti.mmedia\yeti.mmedia.csproj">
-      <Project>{315EE7BF-EAE2-42C0-BFC6-CCA9160F3CFE}</Project>
-      <Name>yeti.mmedia</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Tools\MP3Compression\yeti.mp3\yeti.mp3.csproj">
-      <Project>{B564FD33-FA50-46B2-B669-2D83DE3AF5E4}</Project>
-      <Name>yeti.mp3</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Tools\MP3Compression\yeti.wmfsdk\yeti.wmfsdk.csproj">
-      <Project>{FECB5BEB-AB05-454A-BB14-6A554E897274}</Project>
-      <Name>yeti.wmfsdk</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
