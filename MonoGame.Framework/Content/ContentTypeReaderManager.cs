@@ -82,6 +82,7 @@ namespace Microsoft.Xna.Framework.Content
                 var hCharListReader = new ListReader<Char>();
                 var hRectangleListReader = new ListReader<Rectangle>();
                 var hRectangleArrayReader = new ArrayReader<Rectangle>();
+                var hVector3ArrayReader = new ArrayReader<Vector3>();
                 var hVector3ListReader = new ListReader<Vector3>();
                 var hStringListReader = new ListReader<StringReader>();
 				var hIntListReader = new ListReader<Int32>();

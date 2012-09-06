@@ -62,11 +62,6 @@
     <MtouchDebug>true</MtouchDebug>
     <AssemblyName>MonoGame.Framework</AssemblyName>
     <MtouchUseArmv7>false</MtouchUseArmv7>
-    <CustomCommands>
-      <CustomCommands>
-        <Command type="AfterBuild" command="cp ${TargetFile} ${SolutionDir}/../MonoGame.Build/" />
-      </CustomCommands>
-    </CustomCommands>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhone' ">
     <DebugType>none</DebugType>
@@ -78,11 +73,6 @@
     <DefineConstants>IPHONE;GLES;OPENGL</DefineConstants>
     <AssemblyName>MonoGame.Framework</AssemblyName>
     <MtouchUseArmv7>false</MtouchUseArmv7>
-    <CustomCommands>
-      <CustomCommands>
-        <Command type="AfterBuild" command="cp ${TargetFile} ${SolutionDir}/../MonoGame.Build/" />
-      </CustomCommands>
-    </CustomCommands>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
