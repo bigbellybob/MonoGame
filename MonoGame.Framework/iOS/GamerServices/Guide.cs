@@ -118,7 +118,7 @@ namespace Microsoft.Xna.Framework.GamerServices
 		private static GKLeaderboardViewController leaderboardController;
 		private static GKAchievementViewController achievementController;
 		private static GKPeerPickerController peerPickerController;
-		private static GKMatchmakerViewController matchmakerViewController;
+//		private static GKMatchmakerViewController matchmakerViewController;
         private static KeyboardInputViewController keyboardViewController;
 		private static GuideViewController viewController = null;
 		private static GestureType prevGestures;
@@ -467,57 +467,57 @@ namespace Microsoft.Xna.Framework.GamerServices
 		}
 		
 		
-		public static void ShowMatchMaker()
-		{
-			AssertInitialised ();
-
-			if ( ( Gamer.SignedInGamers.Count > 0 ) && ( Gamer.SignedInGamers[0].IsSignedInToLive ) )
-			{
-				// Lazy load it
-				if ( matchmakerViewController == null )
-				{
-					matchmakerViewController = new GKMatchmakerViewController();
-				}
-
-			    if (matchmakerViewController != null)		
-			    {			
-					matchmakerViewController.DidFailWithError += delegate(object sender, GKErrorEventArgs e) {
-						matchmakerViewController.DismissModalViewControllerAnimated(true);
-						isVisible = false;
-						TouchPanel.EnabledGestures=prevGestures;
-					};
-					
-					matchmakerViewController.DidFindMatch += delegate(object sender, GKMatchEventArgs e) {
-						
-					};
-						
-					matchmakerViewController.DidFindPlayers += delegate(object sender, GKPlayersEventArgs e) {
-						
-					};
-					
-					matchmakerViewController.WasCancelled += delegate(object sender, EventArgs e) {
-						matchmakerViewController.DismissModalViewControllerAnimated(true);
-						isVisible = false;
-						TouchPanel.EnabledGestures=prevGestures;
-					};
-
-					if (_window != null)
-					{
-						if(viewController == null)
-						{
-							viewController = new GuideViewController();
-							_window.Add(viewController.View);
-							viewController.View.Hidden = true;
-						}
-
-						prevGestures=TouchPanel.EnabledGestures;
-						TouchPanel.EnabledGestures=GestureType.None;
-						viewController.PresentModalViewController(matchmakerViewController, true);						
-						isVisible = true;
-					}				
-			    }
-			}
-		}
+//		public static void ShowMatchMaker()
+//		{
+//			AssertInitialised ();
+//
+//			if ( ( Gamer.SignedInGamers.Count > 0 ) && ( Gamer.SignedInGamers[0].IsSignedInToLive ) )
+//			{
+//				// Lazy load it
+//				if ( matchmakerViewController == null )
+//				{
+//					matchmakerViewController = new GKMatchmakerViewController();
+//				}
+//
+//			    if (matchmakerViewController != null)		
+//			    {			
+//					matchmakerViewController.DidFailWithError += delegate(object sender, GKErrorEventArgs e) {
+//						matchmakerViewController.DismissModalViewControllerAnimated(true);
+//						isVisible = false;
+//						TouchPanel.EnabledGestures=prevGestures;
+//					};
+//					
+//					matchmakerViewController.DidFindMatch += delegate(object sender, GKMatchEventArgs e) {
+//						
+//					};
+//						
+//					matchmakerViewController.DidFindPlayers += delegate(object sender, GKPlayersEventArgs e) {
+//						
+//					};
+//					
+//					matchmakerViewController.WasCancelled += delegate(object sender, EventArgs e) {
+//						matchmakerViewController.DismissModalViewControllerAnimated(true);
+//						isVisible = false;
+//						TouchPanel.EnabledGestures=prevGestures;
+//					};
+//
+//					if (_window != null)
+//					{
+//						if(viewController == null)
+//						{
+//							viewController = new GuideViewController();
+//							_window.Add(viewController.View);
+//							viewController.View.Hidden = true;
+//						}
+//
+//						prevGestures=TouchPanel.EnabledGestures;
+//						TouchPanel.EnabledGestures=GestureType.None;
+//						viewController.PresentModalViewController(matchmakerViewController, true);						
+//						isVisible = true;
+//					}				
+//			    }
+//			}
+//		}
 
 		public static IAsyncResult BeginShowStorageDeviceSelector( AsyncCallback callback, Object state )
 		{

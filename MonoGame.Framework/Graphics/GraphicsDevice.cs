@@ -1845,14 +1845,12 @@ namespace Microsoft.Xna.Framework.Graphics
             {
                 case SurfaceFormat.Color: //kTexture2DPixelFormat_RGBA8888
                 case SurfaceFormat.Dxt3:
-
                     sz = 4;
                     imageInfo = new byte[(width * height) * sz];
                     break;
                 case SurfaceFormat.Bgra4444: //kTexture2DPixelFormat_RGBA4444
                     sz = 2;
                     imageInfo = new byte[(width * height) * sz];
-
                     break;
                 case SurfaceFormat.Bgra5551: //kTexture2DPixelFormat_RGB5A1
                     sz = 2;
@@ -1870,15 +1868,15 @@ namespace Microsoft.Xna.Framework.Graphics
             return imageInfo;
         }
 
-        public void SaveAsJpeg(Stream stream, int width, int height)
+        public void SaveAsJpeg(Stream stream, int width, int height, UIImageOrientation orientation)
         {
 #if IPHONE
             int mByteWidth = width * 4;         // Assume 4 bytes/pixel for now
             mByteWidth = (mByteWidth + 3) & ~3;    // Align to 4 bytes
 
             CGImage cgImage = CreateRGBImageFromBufferData (mByteWidth, width, height);
-                
-            using (UIImage uiImage = UIImage.FromImage(cgImage))
+
+            using (UIImage uiImage = new UIImage(cgImage, 1.0f, orientation))
             {
                 NSData data = uiImage.AsJPEG();
                 WriteNSDataToStream(data, stream);
@@ -1893,7 +1891,7 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             CGColorSpace cgColorSpace = CGColorSpace.CreateDeviceRGB();
 
-            CGImageAlphaInfo alphaInfo = (CGImageAlphaInfo)((int)CGImageAlphaInfo.PremultipliedLast | (int)CGBitmapFlags.ByteOrderDefault);
+            CGImageAlphaInfo alphaInfo = (CGImageAlphaInfo)((int)CGImageAlphaInfo.NoneSkipLast | (int)CGBitmapFlags.ByteOrderDefault);
 
             CGBitmapContext bitmap;
             byte[] mData = GetData();
